@@ -9,25 +9,26 @@
 #define MAX_SIZE 4096
 const int PROJECT_ID = 'E';
 
-struct sembuf min = { 0, -2, 0 };
-struct sembuf plus = { 0, 1, 0 };
+struct sembuf min[1] = {{ 0, -2, 0 }};
+struct sembuf plus[1] = {{ 0, 1, 0 }};
 
 typedef struct mem_msg {
    int type;
    char buff[MAX_SIZE];
 } message;
 
+union semun {
+   int val;                // Value for SETVAL
+   struct semid_ds *buf;   // Buffer for IPC_STAT, IPC_SET
+   unsigned short *array;  // Array for GETALL, SETALL
+   struct seminfo *__buf;  // Buffer for IPC_INFO (Linux specific)
+} arg;
+
 int main() {
    int shmid, semid;
    key_t ipckey;
    message* msgptr;
 
-   union semun {
-      int val;                // Value for SETVAL
-      struct semid_ds *buf;   // Buffer for IPC_STAT, IPC_SET
-      unsigned short *array;  // Array for GETALL, SETALL
-      struct seminfo *__buf;  // Buffer for IPC_INFO (Linux specific)
-   } arg;
    arg.val = 1;
 
    system("touch /tmp/lab6");
@@ -57,12 +58,12 @@ int main() {
    while(1) {
       // wait for client resources
       printf("Waiting for resources\n");
-      if (semop(semid, &min, 1) < 0) {
+      if (semop(semid, &min[0], 1) < 0) {
          printf("Error in waiting for resources\n");
          exit(1);
       }
 
-      printf("Type 'q' to exit or anything to continue\n");
+      printf("Type 'q' to exit or 'ENTER' to continue\n");
       if(getchar()=='q')
          break;
 
@@ -89,12 +90,11 @@ int main() {
       }
 
       // free resources
-      if (semop(semid, &plus, 1) < 0) {
+      if (semop(semid, &plus[0], 1) < 0) {
          printf("Free resources error\n");
          exit(1);
       }
    }
-
 
    // remove shared memory
    if (shmctl(shmid, IPC_RMID, 0) < 0) {
@@ -107,7 +107,6 @@ int main() {
       printf("Error removing semaphore\n");
       exit(1);
    }
-
 
    return 0;
 }

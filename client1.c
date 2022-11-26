@@ -11,9 +11,9 @@
 #define MAX_SIZE 4096
 const int PROJECT_ID = 'E';
 
-struct sembuf plus2 = { 0, 2, 0 };
-struct sembuf plus = { 0, 1, 0 };
-struct sembuf min = { 0, -1, 0 };
+struct sembuf plus2[1] = {{ 0, 2, 0 }};
+struct sembuf plus[1] = {{ 0, 1, 0 }};
+struct sembuf min[1] = {{ 0, -1, 0 }};
 
 int main() {
    // Data structure in shared memory
@@ -59,7 +59,7 @@ int main() {
 
    // Catch res
    printf("Waiting for resources\n");
-   if(semop(semid, &min, 1) < 0) {
+   if(semop(semid, &min[0], 1) < 0) {
       printf("Catching resources error\n");
       exit(1);
    }
@@ -87,14 +87,14 @@ int main() {
    }
 
    // Free resources
-   if(semop(semid, &plus2, 1) < 0) {
+   if(semop(semid, &plus2[0], 1) < 0) {
       printf("Free resources error\n");
       exit(1);
    }
 
    // Catch res
-   printf("Wait for resources\n");
-   if(semop(semid, &min, 1) < 0) {
+   printf("Waiting for resources\n");
+   if(semop(semid, &min[0], 1) < 0) {
       printf("Catching resources error\n");
       exit(1);
    }
@@ -115,7 +115,7 @@ int main() {
    }
 
    // Free resources
-   if(semop(semid, &plus, 1) < 0) {
+   if(semop(semid, &plus[0], 1) < 0) {
       printf("Free resources error\n");
       exit(1);
    }
